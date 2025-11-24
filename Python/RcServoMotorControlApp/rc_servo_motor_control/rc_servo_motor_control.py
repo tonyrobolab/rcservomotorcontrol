@@ -6,6 +6,8 @@
 #
 #               v0.2  2025.11.07  Tony Kwon
 #                   Add angle configurations
+#               v0.3  2025.11.13  Tony Kwon
+#                   Set window fixed size
 # --------------------------------------------------------------------------------
 
 # --------------------------------------------------------------------------------
@@ -36,7 +38,8 @@ class RcServoMotorControl(QMainWindow):
         self.setWindowTitle('RC Servo Motor Control')
         
         # Set main widget
-        self.setCentralWidget(self.view)  
+        self.setCentralWidget(self.view)
+        self.setFixedSize(self.view.sizeHint().width(), self.view.sizeHint().height())
         
     def get_view(self):
         return self.view
