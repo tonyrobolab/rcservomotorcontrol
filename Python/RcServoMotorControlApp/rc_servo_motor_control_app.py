@@ -3,6 +3,9 @@
 #
 #   Version     v0.1  2025.11.05  Tony Kwon
 #                   Initial revision
+#
+#               v0.2  2025.11.07  Tony Kwon
+#                   Add tick and angle setup functions
 # --------------------------------------------------------------------------------
 
 # --------------------------------------------------------------------------------
@@ -26,9 +29,15 @@ if __name__ == '__main__':
         [300,   100,    500],    
         [300,   100,    500]     
     ]
+    motor_angles = [
+        #Init   Min     Max
+        [0,     -45,    45],    
+        [0,     -45,    45],    
+        [0,     -45,    45]     
+    ]
     
     # Init application
     app = QApplication(sys.argv)
-    control = RcServoMotorControl(motor_cnt, motor_ticks)
+    control = RcServoMotorControl(motor_cnt, motor_ticks, motor_angles)
     control.show()
     sys.exit(app.exec())

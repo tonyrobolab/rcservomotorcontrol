@@ -3,6 +3,9 @@
 #
 #   Version     v0.1  2025.11.05  Tony Kwon
 #                   Initial revision
+#
+#               v0.2  2025.11.07  Tony Kwon
+#                   Add angle configurations
 # --------------------------------------------------------------------------------
 
 # --------------------------------------------------------------------------------
@@ -18,13 +21,13 @@ from .rc_servo_motor_control_view import RcServoMotorControlView
 #   Class - RcServoMotorControl
 # --------------------------------------------------------------------------------
 class RcServoMotorControl(QMainWindow):
-    def __init__(self, motor_cnt, motor_ticks):     
+    def __init__(self, motor_cnt, motor_ticks, motor_angles):     
         super().__init__()
         
         # Set model
         self.model = RcServoMotorControlModel()
         for i in range(motor_cnt):
-            self.model.add_motor(RcServoMotor(motor_ticks[i]))
+            self.model.add_motor(RcServoMotor(motor_ticks[i], motor_angles[i]))
 
         # Set view
         self.view = RcServoMotorControlView(self.model)        

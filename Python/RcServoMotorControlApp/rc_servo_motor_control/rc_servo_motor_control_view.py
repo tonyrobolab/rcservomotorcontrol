@@ -3,6 +3,9 @@
 #
 #   Version     v0.1  2025.11.05  Tony Kwon
 #                   Initial revision
+#
+#               v0.2  2025.11.07  Tony Kwon
+#                   Add tick and angle setup functions
 # --------------------------------------------------------------------------------
 
 # --------------------------------------------------------------------------------
@@ -18,7 +21,9 @@ from PySide6.QtWidgets import (
     QPushButton,
     QGroupBox,
     QComboBox,
-    QSlider
+    QSlider,
+    QRadioButton,
+    QButtonGroup
 )
 from PySide6.QtCore import Qt
 
@@ -31,24 +36,29 @@ class RcServoMotorControlView(QWidget):
     def __init__(self, model):
         super().__init__()
         self.model = model        
-        self.motor_cnt = len(model.motors)
-
+        self.motor_cnt = model.get_motor_cnt()
+        self.is_tick = True 
+        
         self.line_edits = []
         self.plus_buttons = []
         self.minus_buttons = []
         self.ok_buttons = []
         self.sliders = []
+        self.radio_buttons = []        
         
         self.init_ui()        
 
         self.is_initialized = False
-
-        # Init sliders
-        for i in range(self.motor_cnt):
-            self.line_edits[i].setText(str(self.model.motors[i].tick))
-            self.sliders[i].setRange(self.model.motors[i].tick_min, self.model.motors[i].tick_max)
-            self.sliders[i].setValue(self.model.motors[i].tick_init)
-  
+        if self.is_tick is True:
+            for i in range(self.motor_cnt):            
+                self.line_edits[i].setText(str(self.model.get_tick(i)))
+                self.sliders[i].setRange(self.model.get_tick_min(i), self.model.get_tick_max(i))
+                self.sliders[i].setValue(self.model.get_tick(i))
+        else:
+            for i in range(self.motor_cnt):
+                self.line_edits[i].setText(str(self.model.get_angle(i)))
+                self.sliders[i].setRange(self.model.get_angle_min(i), self.model.get_angle_max(i))
+                self.sliders[i].setValue(self.model.get_angle(i))    
         self.is_initialized = True
     
     def init_ui(self):
@@ -102,6 +112,26 @@ class RcServoMotorControlView(QWidget):
         
         self.init_button.clicked.connect(self.on_init_clicked)  
 
+        # Set 'Tick/Angle' RadioButton
+        radio_button_h_layout = QHBoxLayout()
+        self.radio_buttons.append(QRadioButton('Tick'))
+        self.radio_buttons.append(QRadioButton('Angle'))
+        
+        if self.is_tick is True:
+            self.radio_buttons[0].setChecked(True)
+        else:
+            self.radio_buttons[1].setChecked(True)
+            
+        self.radio_button_group = QButtonGroup(self)
+        self.radio_button_group.addButton(self.radio_buttons[0])
+        self.radio_button_group.addButton(self.radio_buttons[1])
+        radio_button_h_layout.addWidget(self.radio_buttons[0])
+        radio_button_h_layout.addWidget(self.radio_buttons[1])        
+        setup_v_layout.addLayout(radio_button_h_layout)        
+
+        self.radio_buttons[0].clicked.connect(lambda _, idx=0: self.on_radio_clicked(idx))
+        self.radio_buttons[1].clicked.connect(lambda _, idx=1: self.on_radio_clicked(idx))    
+    
         # Setup GroupBox        
         self.setup_group_box.setLayout(setup_v_layout)
 
@@ -119,7 +149,10 @@ class RcServoMotorControlView(QWidget):
             v_layout = QVBoxLayout()
 
             tick_angle_h_layout = QHBoxLayout()
-            label = QLabel('Tick')
+            if self.is_tick is True:
+                label = QLabel('Tick')
+            else:
+                label = QLabel('Angle')
             line_edit = QLineEdit()
             line_edit.setText('0')
             plus_button = QPushButton('▲')
@@ -175,16 +208,48 @@ class RcServoMotorControlView(QWidget):
     def on_disconnect_clicked(self):
         print('Disconnect')
         self.model.disconnect()  
-        
-    def on_init_clicked(self):
-        print("Init")        
-        for i in range(self.motor_cnt):
-            value = self.model.motors[i].tick_init
-            self.model.set_tick(i, value)            
-            self.line_edits[i].setText(str(value))
-            self.sliders[i].setValue(value)
-        self.model.rotate()
 
+    def on_init_clicked(self):
+        print("Init")
+        if self.is_tick is True:
+            for i in range(self.motor_cnt):            
+                self.line_edits[i].setText(str(self.model.get_tick_init(i)))                
+                self.sliders[i].setValue(self.model.get_tick_init(i))
+        else:
+            for i in range(self.motor_cnt):
+                self.line_edits[i].setText(str(self.model.get_angle_init(i)))
+                self.sliders[i].setValue(self.model.get_angle_init(i))       
+        self.model.rotate()
+        
+    def on_radio_clicked(self, index):
+        # Update current slider value 
+        if self.is_tick is True:
+            for i in range(self.motor_cnt):
+                self.model.set_tick(i, self.sliders[i].value())            
+        else:
+            for i in range(self.motor_cnt):
+                self.model.set_angle(i, self.sliders[i].value())        
+        
+        # Set tick/angle type
+        if index == 0:
+            self.is_tick = True
+        else:
+            self.is_tick = False
+
+        # Set slider range and value
+        self.is_initialized = False
+        if self.is_tick is True:
+            for i in range(self.motor_cnt):            
+                self.line_edits[i].setText(str(self.model.get_tick(i)))
+                self.sliders[i].setRange(self.model.get_tick_min(i), self.model.get_tick_max(i))
+                self.sliders[i].setValue(self.model.get_tick(i))
+        else:
+            for i in range(self.motor_cnt):
+                self.line_edits[i].setText(str(self.model.get_angle(i)))
+                self.sliders[i].setRange(self.model.get_angle_min(i), self.model.get_angle_max(i))
+                self.sliders[i].setValue(self.model.get_angle(i))    
+        self.is_initialized = True
+        
     # ----------------------------------------
     # 'Motor' event
     # ----------------------------------------        
